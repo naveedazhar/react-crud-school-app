@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import "./Students.css";
 
 import { makeStyles, Button } from "@material-ui/core";
@@ -19,8 +18,6 @@ const useStyles = makeStyles({
 export default function Students({ studentList, editRow, deleteUser }) {
   const classes = useStyles();
 
-  console.log(studentList);
-
   // // retrieve exising localstorate data
   // const localStorateData = JSON.parse(localStorage.getItem("userData"));
 
@@ -29,8 +26,8 @@ export default function Students({ studentList, editRow, deleteUser }) {
       <Table className={classes.table} aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>Index</TableCell>
-            <TableCell>Name</TableCell>
+            <TableCell>First Name</TableCell>
+            <TableCell>Last Name </TableCell>
             <TableCell>Email</TableCell>
             <TableCell colSpan={2}>Details</TableCell>
           </TableRow>
@@ -38,45 +35,31 @@ export default function Students({ studentList, editRow, deleteUser }) {
         <TableBody>
           {studentList.map((student, index) => (
             <TableRow key={index}>
-              <TableCell>{index}</TableCell>
+              <TableCell>{student.firstName}</TableCell>
               <TableCell component="th" scope="row">
-                {student.firstName}
+                {student.lastName}
               </TableCell>
               <TableCell>{student.email}</TableCell>
 
               <TableCell>
-                <Button color="primary" variant="contained">
-                  <Link
-                    className="userDetailBtn"
-                    to={{
-                      pathname: `/students/${index}/${student.firstName}`,
-                      state: student,
-                      id: index,
-                      editRow: () => editRow(student),
-                      currentStudent: student,
-                    }}
-                  >
-                    Edit
-                  </Link>
+                <Button
+                  onClick={() => editRow(student)}
+                  className="userDetailBtn"
+                  color="primary"
+                  variant="contained"
+                  text="Edit"
+                >
+                  Edit
                 </Button>
               </TableCell>
               <TableCell>
-                <Button color="secondary" variant="contained">
-                  {
-                    // https://reactrouter.com/web/api/history
-                    // locatio state useHistory
-                  }
-                  <Link
-                    className="userDetailBtn"
-                    to={{
-                      pathname: `/students/${index}/${student.firstName}`,
-                      state: student,
-                      id: index,
-                      deleteUser: deleteUser,
-                    }}
-                  >
-                    Delete
-                  </Link>
+                <Button
+                  onClick={() => deleteUser(student.id)}
+                  className="userDetailBtn"
+                  color="secondary"
+                  variant="contained"
+                >
+                  Delete
                 </Button>
               </TableCell>
             </TableRow>

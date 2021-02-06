@@ -10,7 +10,7 @@ import {
   Container,
 } from "@material-ui/core";
 
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -29,7 +29,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const StudentDetails = ({ currentStudent, updateStudent }) => {
-  console.log(currentStudent, updateStudent);
   const classes = useStyles();
   // const { firstName } = useParams();
   // const history = useHistory();
@@ -39,9 +38,14 @@ const StudentDetails = ({ currentStudent, updateStudent }) => {
 
   const [student, setStudent] = useState(currentStudent);
 
-  useEffect(() => {
-    setStudent(currentStudent);
-  }, [currentStudent]);
+  // useEffect(() => {
+  //   console.log("useEffect", currentStudent);
+  //   // if (!currentStudent.name) {
+  //   //   history.go("/students");
+  //   // }
+  //   setStudent(currentStudent);
+  // }, [currentStudent]);
+
   // You can tell React to skip applying an effect if certain values haven’t changed between re-renders. [ props ]
 
   const handleInputChange = (event) => {
@@ -55,9 +59,13 @@ const StudentDetails = ({ currentStudent, updateStudent }) => {
       <CssBaseline />
       <div className={classes.paper}>
         <Typography component="h1" variant="h5">
-          Sign up
+          Update Student
         </Typography>
-        <form className={classes.form} noValidate onSubmit={updateStudent}>
+        <form
+          className={classes.form}
+          noValidate
+          onSubmit={(e) => updateStudent(e, student.id, student)}
+        >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -121,7 +129,7 @@ const StudentDetails = ({ currentStudent, updateStudent }) => {
             color="primary"
             className={classes.submit}
           >
-            Sign Up
+            Update Data
           </Button>
           <Grid container justify="flex-end">
             <Grid item>

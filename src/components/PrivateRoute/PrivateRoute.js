@@ -13,7 +13,7 @@ export const PrivateRoute = ({
     <Route
       path={path}
       render={(props) => {
-        if (localStorage.getItem("loggedin")) {
+        if (localStorage.getItem("loggedinAccount") != null) {
           return <Component {...props} {...rest} />;
         } else {
           return <Redirect to="/not-authorized" />;

@@ -1,4 +1,3 @@
-import React from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -12,6 +11,8 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+
+import React, { useState, useEffect } from "react";
 
 function Copyright() {
   return (
@@ -46,8 +47,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const SignIn = ({ data, onChange, onSignInSubmit }) => {
+const SignIn = ({ initialFormData, onSubmit }) => {
   const classes = useStyles();
+
+  const [formData, setFormData] = useState(initialFormData);
+
+  useEffect(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
+  // You can tell React to skip applying an effect if certain values haven’t changed between re-renders. [ props ]
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData({ ...formData, [name]: value });
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -59,10 +73,14 @@ const SignIn = ({ data, onChange, onSignInSubmit }) => {
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        <form className={classes.form} noValidate onSubmit={onSignInSubmit}>
+        <form
+          className={classes.form}
+          noValidate
+          onSubmit={(e) => onSubmit(e, formData)}
+        >
           <TextField
-            onChange={onChange}
-            value={data.email}
+            onChange={handleInputChange}
+            value={formData.email}
             variant="outlined"
             margin="normal"
             required
@@ -74,8 +92,8 @@ const SignIn = ({ data, onChange, onSignInSubmit }) => {
             autoFocus
           />
           <TextField
-            onChange={onChange}
-            value={data.password}
+            onChange={handleInputChange}
+            value={formData.password}
             variant="outlined"
             margin="normal"
             required

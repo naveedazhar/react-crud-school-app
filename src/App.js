@@ -20,12 +20,15 @@ import NotAuthorized from "./components/NotAuthorized/NotAuthorized";
 import Error404 from "./components/Error404/Error404";
 import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
+import { useHistory } from "react-router-dom";
+
+import { v4 as uuidv4 } from "uuid";
 
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary">
       {"Copyright © "}
-      <Link color="inherit" href="https://material-ui.com/">
+      <Link to="/" color="inherit" href="https://material-ui.com/">
         Your Website
       </Link>{" "}
       {new Date().getFullYear()}
@@ -56,13 +59,12 @@ const useStyles = makeStyles((theme) => ({
 
 function App() {
   const classes = useStyles();
+  let history = useHistory();
 
   // flag to show edit form
   const [editing, setEditing] = useState(false);
 
   const editRow = (student) => {
-    setEditing(true);
-
     setStudentEditProfileData({
       id: student.id,
       firstName: student.firstName,
@@ -70,6 +72,10 @@ function App() {
       email: student.email,
       password: student.password,
     });
+
+    setEditing(true);
+
+    history.push("/student/" + student.id);
   };
 
   const deleteUser = (id) => {
@@ -86,6 +92,7 @@ function App() {
 
   // profile form data (regisration and update student functionality)
   const [signupProfileData, setSignupProfileData] = useState({
+    id: uuidv4(),
     firstName: "",
     lastName: "",
     email: "",
@@ -93,52 +100,35 @@ function App() {
   });
 
   // boolean value to store signin flag
-  const [loggedin, setLoggedIn] = useState(localStorage.getItem("loggedin"));
+  const [loggedin, setLoggedIn] = useState(
+    localStorage.getItem("loggedinAccount") != null
+  );
 
   // name of loggedin user to be displayed on the navbar menue
-  const [name, setName] = useState(
-    (JSON.parse(localStorage.getItem("loggedinAccount")) &&
-      JSON.parse(localStorage.getItem("loggedinAccount")).firstName) ||
-      ""
-  );
+  const [name, setName] = useState();
 
   // profile form data (regisration and update student functionality)
   const [studentProfileData, setStudentEditProfileData] = useState({
+    id: "",
     firstName: "",
     lastName: "",
     email: "",
     password: "",
   });
 
-  const [studentList, setStudentList] = useState(
+  let [studentList, setStudentList] = useState(
     JSON.parse(localStorage.getItem("userData"))
   );
 
-  const onSignUpSubmit = (e) => {
+  const onSignUpSubmit = (e, formData) => {
     e.preventDefault();
-    const inputs = Object.keys(e.target)
-      .filter(
-        (key) =>
-          e.target[key].tagName === "INPUT" &&
-          ["text", "password"].includes(e.target[key].type)
-      )
-      .map((key) => e.target[key]);
 
     // retrieve data form LocalStorage
     const localStorateData = JSON.parse(localStorage.getItem("userData"));
 
-    for (const input of inputs) {
-      setLoggedIn(true);
-      if (!signupProfileData[input.name]) {
-        setLoggedIn(false);
-        alert(`Please enter all required fields`);
-        document.getElementById([input.name]).focus();
-        break;
-      }
-    }
     if (localStorateData) {
       for (let i = 0; i < localStorateData.length; i++) {
-        if (signupProfileData.email === localStorateData[i].email) {
+        if (formData.email === localStorateData[i].email) {
           alert("Already registered on this email");
           document.getElementById("email").focus();
           setLoggedIn(false);
@@ -146,62 +136,41 @@ function App() {
         }
       }
     }
+
+    alert("You have created an account!");
+    const accounts = JSON.parse(localStorage.getItem("userData")) || [];
+    accounts.push(formData);
+    localStorage.setItem("userData", JSON.stringify(accounts));
+    localStorage.setItem("loggedinAccount", JSON.stringify(formData));
+    // udpate student list state
+    setStudentList(accounts);
+    setName(formData.firstName);
+    setSignupProfileData({
+      id: uuidv4(),
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+    });
+    setLoggedIn(true);
   };
 
-  const onStudentEditSubmit = (e) => {
+  const onStudentEditSubmit = (e, id, updatedStudent) => {
     e.preventDefault();
-    console.log(e.target);
-    const inputs = Object.keys(e.target)
-      .filter(
-        (key) =>
-          e.target[key].tagName === "INPUT" &&
-          ["text", "password"].includes(e.target[key].type)
-      )
-      .map((key) => e.target[key]);
 
-    for (const input of inputs) {
-      if (!studentProfileData[input.name]) {
-        alert(`Please enter all required fields`);
-        document.getElementById([input.name]).focus();
-        break;
-      }
-    }
+    studentList = studentList.map((student) =>
+      student.id === id ? updatedStudent : student
+    );
 
-    // // retrieve data form LocalStorage
-    // const localStorateData = JSON.parse(localStorage.getItem("userData"));
+    setStudentList(studentList);
 
-    // if (localStorateData) {
-    //   for (let i = 0; i < localStorateData.length; i++) {
-    //     if (studentProfileData.email === localStorateData[i].email) {
-    //       alert("Already registered on this email");
-    //       document.getElementById("email").focus();
-    //       setLoggedIn(false);
-    //       break;
-    //     }
-    //   }
-    // }
+    localStorage.setItem("userData", JSON.stringify(studentList));
+
+    setEditing(false);
   };
 
-  const onSignInSubmit = (e) => {
+  const onSignInSubmit = (e, formData) => {
     e.preventDefault();
-
-    // iterate whole form target is <form>
-    const inputs = Object.keys(e.target)
-      .filter(
-        (key) =>
-          e.target[key].tagName === "INPUT" &&
-          ["text", "password"].includes(e.target[key].type)
-      )
-      .map((key) => e.target[key]);
-
-    for (const input of inputs) {
-      if (!loginData[input.name]) {
-        setLoggedIn(false);
-        alert(`Please enter your ${[input.name]}`);
-        document.getElementById([input.name]).focus();
-        return false;
-      }
-    }
 
     // retrieve exising localstorate data
     const localStorateData = JSON.parse(localStorage.getItem("userData"));
@@ -210,8 +179,8 @@ function App() {
     if (localStorateData) {
       for (let i = 0; i < localStorateData.length; i++) {
         if (
-          loginData.email === localStorateData[i].email &&
-          loginData.password === localStorateData[i].password
+          formData.email === localStorateData[i].email &&
+          formData.password === localStorateData[i].password
         ) {
           setLoggedIn(true);
           success = true;
@@ -234,44 +203,24 @@ function App() {
     }
   };
 
-  const onChangeSignupProfileData = (e) => {
-    // name, value from html input option such as <input>
-    const { name, value } = e.target;
-    // preVal contains pevious state
-    setSignupProfileData((preVal) => {
-      return {
-        ...preVal,
-        [name]: value,
-      };
-    });
-  };
-
-  const onChangeLoginData = (e) => {
-    // name, value from html input option such as <input>
-    const { name, value } = e.target;
-    // preVal contains pevious state
-    setLoginData((preVal) => {
-      return {
-        ...preVal,
-        [name]: value,
-      };
-    });
-  };
-
-  const updateStudent = (id, updatedStudent) => {
-    setEditing(false);
-
-    setStudentList(
-      studentList.map((user) => (user.id === id ? updatedStudent : user))
-    );
-  };
-
   useEffect(() => {
-    if (loggedin && signupProfileData.firstName) {
-      alert("You have created an account!");
+    if (!editing && studentProfileData.firstName) {
+      alert("You have edited the account");
+
+      setStudentEditProfileData({
+        id: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+      });
+
+      setEditing(false);
+      history.push("/students");
+    } else if (loggedin && signupProfileData.firstName) {
+      alert("You have creaated n account!");
       const accounts = JSON.parse(localStorage.getItem("userData")) || [];
       accounts.push(signupProfileData);
-      localStorage.setItem("loggedin", "true");
       localStorage.setItem("userData", JSON.stringify(accounts));
       localStorage.setItem(
         "loggedinAccount",
@@ -281,168 +230,141 @@ function App() {
       setStudentList(accounts);
       setName(signupProfileData.firstName);
       setSignupProfileData({
+        id: uuidv4(),
         firstName: "",
         lastName: "",
         email: "",
         password: "",
       });
     } else if (loggedin && loginData.email) {
-      localStorage.setItem("loggedin", "true");
+      localStorage.setItem("loggedinAccount", "true");
       setLoginData({
         email: "",
         password: "",
       });
     }
-    // else if (stdentRecordUpdated && studentProfileData.firstName) {
-    //   alert("Student record updated!");
-    //   const accounts = JSON.parse(localStorage.getItem("userData")) || [];
-    //   accounts.push(signupProfileData);
-    //   // localStorage.setItem("loggedin", "true");
-    //   localStorage.setItem("userData", JSON.stringify(accounts));
-    //   // localStorage.setItem(
-    //   //   "loggedinAccount",
-    //   //   JSON.stringify(signupProfileData)
-    //   // );
-    //   // setName(signupProfileData.firstName);
-
-    //   // udpate student list state
-    //   setStudentList(accounts);
-
-    //   setStudentEditProfileData({
-    //     firstName: "",
-    //     lastName: "",
-    //     email: "",
-    //     password: "",
-    //   });
-    // }
-  }, [loggedin]);
+  }, [loggedin, editing]);
 
   return (
-    <Router>
-      <div className={classes.root}>
-        <AppBar position="static">
-          <Toolbar>
-            <Grid
-              justify="space-between" // This will result in making second <Grid item> right aligned
-              container
-            >
-              <Grid item>
-                {
-                  // left aligned
-                }
-                <Button color="inherit">
-                  <Link className="btns" to="/">
-                    Home
-                  </Link>
+    <div className={classes.root}>
+      <AppBar position="static">
+        <Toolbar>
+          <Grid
+            justify="space-between" // This will result in making second <Grid item> right aligned
+            container
+          >
+            <Grid item>
+              {
+                // left aligned
+              }
+              <Button color="inherit">
+                <Link className="btns" to="/">
+                  Home
+                </Link>
+              </Button>
+              <Button color="inherit">
+                <Link className="btns" to="/about">
+                  About
+                </Link>
+              </Button>
+              <Button color="inherit">
+                <Link className="btns" to="/students">
+                  Students
+                </Link>
+              </Button>
+              {loggedin ? (
+                <Button id="name" disabled>
+                  {name}'s account
                 </Button>
-                <Button color="inherit">
-                  <Link className="btns" to="/about">
-                    About
-                  </Link>
-                </Button>
-                <Button color="inherit">
-                  <Link className="btns" to="/students">
-                    Students
-                  </Link>
-                </Button>
-                {loggedin ? (
-                  <Button id="name" disabled>
-                    {name}'s account
-                  </Button>
-                ) : null}
-              </Grid>
-
-              <Grid item>
-                {!loggedin ? (
-                  <>
-                    <Button color="inherit">
-                      <Link className="btns" to="/signup">
-                        Sign Up
-                      </Link>
-                    </Button>
-                    <Button color="inherit">
-                      <Link className="btns" to="/signin">
-                        Log in
-                      </Link>
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    color="inherit"
-                    onClick={() => {
-                      setLoggedIn(false);
-                      setName("");
-                      localStorage.removeItem("loggedin");
-                      localStorage.removeItem("loggedinAccount");
-                    }}
-                  >
-                    Log out
-                  </Button>
-                )}
-              </Grid>
+              ) : null}
             </Grid>
-          </Toolbar>
-        </AppBar>
-        <Switch>
-          <Route exact path="/">
-            <Home name={name} />
-          </Route>
-          <PrivateRoute path="/about" component={About} />
 
-          {
-            // https://stackoverflow.com/questions/49044052/pass-custom-data-to-privateroute-component-in-react
-          }
-          <PrivateRoute
-            exact
-            path="/students"
-            component={Students}
-            studentList={studentList}
-            // editRow={editRow}
-            deleteUser={deleteUser}
-          ></PrivateRoute>
+            <Grid item>
+              {!loggedin ? (
+                <>
+                  <Button color="inherit">
+                    <Link className="btns" to="/signup">
+                      Sign Up
+                    </Link>
+                  </Button>
+                  <Button color="inherit">
+                    <Link className="btns" to="/signin">
+                      Log in
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  color="inherit"
+                  onClick={() => {
+                    setLoggedIn(false);
+                    setName("");
+                    localStorage.removeItem("loggedinAccount");
+                  }}
+                >
+                  Log out
+                </Button>
+              )}
+            </Grid>
+          </Grid>
+        </Toolbar>
+      </AppBar>
+      <Switch>
+        <Route exact path="/">
+          <Home name={name} />
+        </Route>
+        <PrivateRoute path="/about" component={About} />
 
-          <PrivateRoute
-            path="/students/:userId/:firstName"
-            component={StudentDetails}
-            updateStudent={onStudentEditSubmit}
-          />
-          <Route path="/signup">
-            {!loggedin ? (
-              <Signup
-                signupProfileData={signupProfileData}
-                onChange={onChangeSignupProfileData}
-                onSignUpSubmit={onSignUpSubmit}
-              />
-            ) : (
-              <Redirect to="/" />
-            )}
-          </Route>
-          <Route path="/signin">
-            {!loggedin ? (
-              <SignIn
-                data={loginData}
-                onChange={onChangeLoginData}
-                onSignInSubmit={onSignInSubmit}
-              />
-            ) : (
-              <Redirect to="/" />
-            )}
-          </Route>
-          {/* <Route component={NotAuthorized} /> */}
-          <Route path="/not-authorized" component={NotAuthorized} />
-          {/* This is default route without path param. Everything non existing URL will be caught by this route */}
-          <Route component={Error404} />
-        </Switch>
-        <footer className={classes.footer}>
-          <Container maxWidth="sm">
-            <Typography variant="body1">
-              My sticky footer can be found here.
-            </Typography>
-            <Copyright />
-          </Container>
-        </footer>
-      </div>
-    </Router>
+        {
+          // https://stackoverflow.com/questions/49044052/pass-custom-data-to-privateroute-component-in-react
+        }
+        <PrivateRoute
+          exact
+          path="/students"
+          component={Students}
+          studentList={studentList}
+          editRow={editRow}
+          deleteUser={deleteUser}
+        ></PrivateRoute>
+
+        <PrivateRoute
+          path="/student/:id"
+          component={StudentDetails}
+          currentStudent={studentProfileData}
+          updateStudent={onStudentEditSubmit}
+        ></PrivateRoute>
+
+        <Route path="/signup">
+          {!loggedin ? (
+            <Signup
+              currentProfile={signupProfileData}
+              onSignUpSubmit={onSignUpSubmit}
+            />
+          ) : (
+            <Redirect to="/" />
+          )}
+        </Route>
+        <Route path="/signin">
+          {!loggedin ? (
+            <SignIn initialFormData={loginData} onSubmit={onSignInSubmit} />
+          ) : (
+            <Redirect to="/" />
+          )}
+        </Route>
+        {/* <Route component={NotAuthorized} /> */}
+        <Route path="/not-authorized" component={NotAuthorized} />
+        {/* This is default route without path param. Everything non existing URL will be caught by this route */}
+        <Route component={Error404} />
+      </Switch>
+      <footer className={classes.footer}>
+        <Container maxWidth="sm">
+          <Typography variant="body1">
+            My sticky footer can be found here.
+          </Typography>
+          <Copyright />
+        </Container>
+      </footer>
+    </div>
   );
 }
 

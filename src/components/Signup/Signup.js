@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from "react";
+
 import {
   Button,
   CssBaseline,
@@ -25,8 +27,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Signup = ({ signupProfileData, onChange, onSignUpSubmit }) => {
+const Signup = ({ currentProfile, onSignUpSubmit }) => {
   const classes = useStyles();
+
+  const [student, setStudent] = useState(currentProfile);
+
+  useEffect(() => {
+    console.log("useEffect", currentProfile);
+    setStudent(currentProfile);
+  }, [currentProfile]);
+  // You can tell React to skip applying an effect if certain values haven’t changed between re-renders. [ props ]
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setStudent({ ...student, [name]: value });
+  };
 
   return (
     <Container elevation={3} component="main" maxWidth="xs">
@@ -35,12 +51,16 @@ const Signup = ({ signupProfileData, onChange, onSignUpSubmit }) => {
         <Typography component="h1" variant="h5">
           Sign up
         </Typography>
-        <form className={classes.form} noValidate onSubmit={onSignUpSubmit}>
+        <form
+          className={classes.form}
+          noValidate
+          onSubmit={(e) => onSignUpSubmit(e, student)}
+        >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
-                onChange={onChange}
-                value={signupProfileData.firstName}
+                onChange={handleInputChange}
+                value={student.firstName}
                 autoComplete="fname"
                 name="firstName"
                 variant="outlined"
@@ -53,8 +73,8 @@ const Signup = ({ signupProfileData, onChange, onSignUpSubmit }) => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                onChange={onChange}
-                value={signupProfileData.lastName}
+                onChange={handleInputChange}
+                value={student.lastName}
                 variant="outlined"
                 required
                 fullWidth
@@ -66,8 +86,8 @@ const Signup = ({ signupProfileData, onChange, onSignUpSubmit }) => {
             </Grid>
             <Grid item xs={12}>
               <TextField
-                onChange={onChange}
-                value={signupProfileData.email}
+                onChange={handleInputChange}
+                value={student.email}
                 variant="outlined"
                 required
                 fullWidth
@@ -79,8 +99,8 @@ const Signup = ({ signupProfileData, onChange, onSignUpSubmit }) => {
             </Grid>
             <Grid item xs={12}>
               <TextField
-                onChange={onChange}
-                value={signupProfileData.password}
+                onChange={handleInputChange}
+                value={student.password}
                 variant="outlined"
                 required
                 fullWidth
