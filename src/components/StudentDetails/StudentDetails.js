@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import {
   Button,
@@ -10,7 +10,7 @@ import {
   Container,
 } from "@material-ui/core";
 
-import { Link, useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -30,21 +30,8 @@ const useStyles = makeStyles((theme) => ({
 
 const StudentDetails = ({ currentStudent, updateStudent }) => {
   const classes = useStyles();
-  // const { firstName } = useParams();
-  // const history = useHistory();
-  // https://reactrouter.com/web/api/history
-  // locatio state useHistory
-  // const profileData = history.location.state;
 
   const [student, setStudent] = useState(currentStudent);
-
-  // useEffect(() => {
-  //   console.log("useEffect", currentStudent);
-  //   // if (!currentStudent.name) {
-  //   //   history.go("/students");
-  //   // }
-  //   setStudent(currentStudent);
-  // }, [currentStudent]);
 
   // You can tell React to skip applying an effect if certain values haven’t changed between re-renders. [ props ]
 

@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
 import { makeStyles, AppBar, Toolbar, Button, Grid } from "@material-ui/core";
-import {
-  Switch,
-  Route,
-  Link,
-  Redirect,
-  BrowserRouter as Router,
-} from "react-router-dom";
+import { Switch, Route, Link, Redirect } from "react-router-dom";
 import "./App.css";
 import "fontsource-roboto";
 import Home from "./components/Home/Home";
